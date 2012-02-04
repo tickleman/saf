@@ -1,4 +1,4 @@
-package com.bappli.saf;
+package com.bappli.saf.environment;
 
 //######################################################################################## Agregate
 public interface Contained

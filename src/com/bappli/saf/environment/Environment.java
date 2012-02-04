@@ -1,4 +1,4 @@
-package com.bappli.saf;
+package com.bappli.saf.environment;
 
 //##################################################################################### Environment
 public class Environment

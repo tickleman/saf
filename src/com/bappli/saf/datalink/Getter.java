@@ -3,8 +3,8 @@ package com.bappli.saf.datalink;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import com.bappli.saf.ConnectedEnvironment;
-import com.bappli.saf.Contained;
+import com.bappli.saf.environment.ConnectedEnvironment;
+import com.bappli.saf.environment.Contained;
 
 //########################################################################################## Getter
 public class Getter

@@ -1,4 +1,4 @@
-package com.bappli.saf;
+package com.bappli.saf.environment;
 
 import com.bappli.saf.datalink.DataLink;
 import com.bappli.saf.datalink.Getter;
