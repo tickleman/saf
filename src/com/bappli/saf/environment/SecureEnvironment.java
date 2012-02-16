@@ -1,14 +1,15 @@
 package com.bappli.saf.environment;
 
 import com.bappli.saf.datalink.DataLink;
-import com.bappli.saf.datalink.Getter;
+import com.bappli.saf.datalink.mappers.Getter;
 
-//############################################################################### SecureEnvironment
 public class SecureEnvironment extends ConnectedEnvironment
 {
 
 	//--------------------------------------------------------------------------------------- current
-	public static SecureEnvironment getCurrent() { return (SecureEnvironment)Environment.getCurrent(); }
+	public static SecureEnvironment getCurrent() {
+		return (SecureEnvironment)Environment.getCurrent();
+	}
 
 	//------------------------------------------------------------------------------------------ user
 	private User user;

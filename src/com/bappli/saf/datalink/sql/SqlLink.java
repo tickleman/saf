@@ -1,10 +1,11 @@
-package com.bappli.saf.datalink;
+package com.bappli.saf.datalink.sql;
 
 import java.sql.Connection;
 import java.util.HashMap;
 import java.util.Map;
 
-//##################################################################################### SqlDataLink
+import com.bappli.saf.datalink.DataLink;
+
 public abstract class SqlLink implements DataLink
 {
 
@@ -14,7 +15,9 @@ public abstract class SqlLink implements DataLink
 	 */
 	private Map<Object, Integer> objectsIdentifiers = new HashMap<Object, Integer>();
 	protected Integer getObjectIdentifier(Object object) { return objectsIdentifiers.get(object); }
-	protected SqlLink setObjectIdentifier(Object object, Integer id) { objectsIdentifiers.put(object, id); return this; }
+	protected SqlLink setObjectIdentifier(Object object, Integer id) {
+		objectsIdentifiers.put(object, id); return this;
+	}
 
 	//------------------------------------------------------------------------------------ connection
 	private Connection connection;

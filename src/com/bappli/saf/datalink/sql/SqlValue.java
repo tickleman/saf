@@ -1,6 +1,5 @@
-package com.bappli.saf.datalink;
+package com.bappli.saf.datalink.sql;
 
-//######################################################################################## SqlValue
 public abstract class SqlValue
 {
 
@@ -11,8 +10,8 @@ public abstract class SqlValue
 		if (value == null) {
 			stringValue = "NULL";
 		} else {
-			// TODO multiple elements value, escape string
-			stringValue = "\"" + value.toString() + "\"";
+			// TODO multiple elements value
+			stringValue = "\"" + value.toString().replace("\"", "\\\"") + "\"";
 		}
 		return stringValue;
 	}

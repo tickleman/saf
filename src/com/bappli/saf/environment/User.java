@@ -1,6 +1,5 @@
 package com.bappli.saf.environment;
 
-//############################################################################################ User
 public class User
 {
 

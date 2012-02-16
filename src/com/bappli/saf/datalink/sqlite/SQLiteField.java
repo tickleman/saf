@@ -4,7 +4,6 @@ import java.sql.ResultSet;
 
 import com.bappli.saf.datalink.DataField;
 
-//##################################################################################### SQLiteField
 public class SQLiteField implements DataField
 {
 

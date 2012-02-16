@@ -1,6 +1,5 @@
 package com.bappli.saf.datalink;
 
-//####################################################################################### DataField
 public interface DataField
 {
 

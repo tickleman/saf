@@ -6,15 +6,16 @@ import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.bappli.saf.datalink.SqlTable;
+import com.bappli.saf.datalink.sql.SqlLink;
+import com.bappli.saf.datalink.sql.SqlTable;
 
-//##################################################################################### SQLiteTable
 public class SQLiteTable extends SqlTable
 {
 
 	//------------------------------------------------------------------------------------- getFields
-	public static Map<String, SQLiteField> getFields(
-		SQLiteLink link, Class<? extends Object> objectClass
+	@Override
+	public Map<String, SQLiteField> getFields(
+		SqlLink link, Class<? extends Object> objectClass
 	) throws SQLException
 	{
 		Map<String, SQLiteField> fields = new HashMap<String, SQLiteField>();

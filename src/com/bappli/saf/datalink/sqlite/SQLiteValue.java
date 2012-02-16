@@ -1,8 +1,7 @@
 package com.bappli.saf.datalink.sqlite;
 
-import com.bappli.saf.datalink.SqlValue;
+import com.bappli.saf.datalink.sql.SqlValue;
 
-//##################################################################################### SQLiteValue
 public class SQLiteValue extends SqlValue
 {
 

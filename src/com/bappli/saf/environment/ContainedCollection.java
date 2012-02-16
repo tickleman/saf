@@ -1,6 +1,6 @@
 package com.bappli.saf.environment;
 
-public interface Contained
+public interface ContainedCollection
 {
 
 	public Object getParent();

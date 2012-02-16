@@ -1,27 +1,35 @@
-package com.bappli.saf.datalink;
+package com.bappli.saf.datalink.mappers;
 
-import java.util.ArrayList;
 import java.util.Collection;
 
 import com.bappli.saf.environment.ConnectedEnvironment;
 import com.bappli.saf.environment.Contained;
 
-//########################################################################################## Getter
 public class Getter
 {
 
 	//--------------------------------------------------------------------------------- getCollection
 	@SuppressWarnings("unchecked")
 	public static Collection<? extends Contained> getCollection(
-		Collection<? extends Contained> collection, Class<? extends Contained> objectClass, Object parent
+		Collection<? extends Contained> collection,
+		Class<? extends Contained> elementClass,
+		Object parent
 	) {
 		if (collection == null) {
+			Contained element = null;
 			try {
-				collection = (Collection<Contained>)ConnectedEnvironment.getCurrent().getDataLink().search(
-					objectClass.newInstance().setParent(parent)
-				);
-			} catch (Exception exception) {
-				collection = new ArrayList<Contained>();
+				element = elementClass.newInstance();
+			} catch (InstantiationException | IllegalAccessException e) {
+				System.out.println(e.getMessage());
+				e.printStackTrace(System.out);
+			}
+			element.setParent(parent);
+			try {
+				collection = (Collection<? extends Contained>)
+					ConnectedEnvironment.getCurrent().getDataLink().search(element);
+			} catch (Exception e) {
+				System.out.println(e.getMessage());
+				e.printStackTrace(System.out);
 			}
 		}
 		return collection;

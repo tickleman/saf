@@ -4,13 +4,14 @@ import java.util.Collection;
 
 import com.bappli.saf.datalink.DataLink;
 
-//############################################################################ ConnectedEnvironment
 public class ConnectedEnvironment extends Environment
 {
 
 	//--------------------------------------------------------------------------------------- current
-	public static ConnectedEnvironment getCurrent() { return (ConnectedEnvironment)Environment.getCurrent(); }
-
+	public static ConnectedEnvironment getCurrent() {
+		return (ConnectedEnvironment)Environment.getCurrent();
+	}
+	
 	//-------------------------------------------------------------------------------------- dataLink
 	private DataLink dataLink;
 	public DataLink getDataLink() { return dataLink; }

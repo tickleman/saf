@@ -1,10 +1,13 @@
-package com.bappli.saf.datalink;
+package com.bappli.saf.datalink.sql;
 
 import java.lang.reflect.Field;
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 
-//###################################################################################### SqlBuilder
+import com.bappli.saf.datalink.mappers.ClassFields;
+
 public class SqlBuilder
 {
 
@@ -50,7 +53,7 @@ public class SqlBuilder
 				sqlUpdate.append(", ");
 			}
 		}
-		sqlUpdate.append(" WHERE ROWID = ").append(id.toString());
+		sqlUpdate.append(" WHERE `id` = ").append(id.toString());
 		return sqlUpdate.toString();
 	}
 
@@ -70,8 +73,16 @@ public class SqlBuilder
 	}
 
 	//------------------------------------------------------------------------------------ buildWhere
-	public static StringBuffer buildWhere(Object object)
-	{
+	public static StringBuffer buildWhere(
+		Object object, Class<? extends SqlTable> sqlTableClass, SqlLink sqlLink
+	) {
+		Set<String> fieldNames = null;
+		try {
+			fieldNames = sqlTableClass.newInstance().getFields(sqlLink, object.getClass()).keySet();
+		} catch (InstantiationException | IllegalAccessException | SQLException e) {
+			System.out.println(e.getMessage());
+			e.printStackTrace(System.out);
+		}
 		StringBuffer sqlWhere = new StringBuffer();
 		boolean first = true;
 		for (Field field : ClassFields.accessFields(object.getClass())) {
@@ -79,18 +90,31 @@ public class SqlBuilder
 			try {
 				value = field.get(object);
 			} catch (IllegalArgumentException | IllegalAccessException e) {
-				e.printStackTrace();
+				System.out.println(e.getMessage());
+				e.printStackTrace(System.out);
 			}
 			if (value != null) {
-				if (first) {
-					first = false;
-				} else {
-					sqlWhere.append(" AND ");
+				String fieldName = field.getName();
+				if (!fieldNames.contains(fieldName)) {
+					fieldName = "id_" + fieldName;
+					value = sqlLink.getObjectIdentifier(value);
 				}
-				sqlWhere.append("`").append(field.getName()).append("` = ").append(SqlValue.escape(value));
+				if (fieldNames.contains(fieldName)) {
+					if (first) {
+						first = false;
+					} else {
+						sqlWhere.append(" AND ");
+					}
+					sqlWhere.append("`").append(fieldName).append("` = ").append(SqlValue.escape(value));
+				} else {
+					System.out.println("Exception 444122549");
+				}
 			}
 		}
 		ClassFields.accessFieldsDone(object.getClass());
+		if (sqlWhere.length() > 0) {
+			sqlWhere.insert(0, " WHERE ");
+		}
 		return sqlWhere;
 	}
 

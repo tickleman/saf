@@ -1,6 +1,5 @@
 package com.bappli.saf.datalink.sqlite;
 
-//###################################################################################### SQLiteType
 public class SQLiteType
 {
 
