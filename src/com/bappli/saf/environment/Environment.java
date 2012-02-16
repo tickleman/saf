@@ -4,10 +4,6 @@ public class Environment
 {
 
 	private static Environment current;
-	public static Environment getCurrent() { return current; }
-	public static Environment setCurrent(Environment current) {
-		Environment.current = current; return current;
-	} 
 
 	//----------------------------------------------------------------------------------- Environment
 	public Environment()
@@ -16,5 +12,16 @@ public class Environment
 			current = this;
 		}
 	}
+
+	//------------------------------------------------------------------------------------ getCurrent
+	public static Environment getCurrent()
+	{
+		return current;
+	}
+
+	//------------------------------------------------------------------------------------ setCurrent
+	public static Environment setCurrent(Environment current){
+		Environment.current = current; return current;
+	} 
 
 }

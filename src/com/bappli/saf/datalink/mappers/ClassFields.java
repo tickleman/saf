@@ -1,19 +1,18 @@
 package com.bappli.saf.datalink.mappers;
 
 import java.lang.reflect.Field;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.Stack;
 
 public class ClassFields
 {
 
-	//------------------------------------------------------------------------------ accessibleFields
 	static private Stack<Map<Field, Boolean>> accessibleFieldsStack = new Stack<Map<Field, Boolean>>();
 
 	//---------------------------------------------------------------------------------- accessFields
-	public static Collection<Field> accessFields(Class<? extends Object> objectClass)
+	public static Set<Field> accessFields(Class<? extends Object> objectClass)
 	{
 		Map<Field, Boolean> accessibleFields = accessibleFieldsStack.push(
 			new HashMap<Field, Boolean>()

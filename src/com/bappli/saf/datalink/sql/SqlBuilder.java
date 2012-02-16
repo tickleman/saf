@@ -3,10 +3,12 @@ package com.bappli.saf.datalink.sql;
 import java.lang.reflect.Field;
 import java.sql.SQLException;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
 import com.bappli.saf.datalink.mappers.ClassFields;
+import com.bappli.saf.datalink.mappers.Getter;
 
 public class SqlBuilder
 {
@@ -38,6 +40,51 @@ public class SqlBuilder
 			}
 		}
 		return sqlFields;
+	}
+
+	//----------------------------------------------------------------------------------- buildSelect
+	public static String buildSelect(Class<? extends Object> objectClass, String[] columns)
+		throws NoSuchMethodException, SecurityException
+	{
+		String tableName = SqlTable.classToTableName(objectClass);
+		return buildSelect(objectClass, columns, tableName, 1, new StringBuffer("`" + tableName + "`"));
+	}
+
+	//----------------------------------------------------------------------------------- buildSelect
+	private static String buildSelect(
+		Class<? extends Object> objectClass, String[] columns, String tableName,
+		int aliasCounter, StringBuffer sqlFrom
+	) throws NoSuchMethodException, SecurityException
+	{
+		Map<Class<? extends Object>, String> tableAliases
+			= new HashMap<Class<? extends Object>, String>();
+		StringBuffer sqlSelect = new StringBuffer();
+		Set<Field> fields = ClassFields.accessFields(objectClass);
+		for (String column : columns) {
+			if (!column.contains(".")) {
+				sqlSelect.append(", `" + tableName + "`.`" + column + "`");
+			} else {
+				// TODO column.subcolumn.subcolumn2 (today it works only with column.subcolumn)
+				// TODO collection columns
+				String[] splitColumns = column.split("\\.");
+				for (Field field : fields) if (field.getName().equals(splitColumns[0])) {
+					String getter = Getter.getGetter(splitColumns[0]);
+					Class<? extends Object> fieldClass = objectClass.getMethod(getter).getReturnType();
+					String joinedTableName = SqlTable.classToTableName(fieldClass);
+					String tableAlias = tableAliases.get(fieldClass);
+					if (tableAlias == null) {
+						tableAlias = "t" + aliasCounter;
+						tableAliases.put(fieldClass, tableAlias);
+						sqlFrom.append(" LEFT JOIN `").append(joinedTableName).append("` AS `")
+							.append(tableAlias).append("` ON `").append(tableAlias).append("`.`id` = `")
+							.append(tableName).append("`.`id_").append(splitColumns[0]).append("`");
+					}
+					sqlSelect.append(", `").append(tableAlias).append("`.`")
+						.append(splitColumns[1]).append("`");
+				}
+			}
+		}
+		return "SELECT " + sqlSelect.substring(2) + " FROM " + sqlFrom.toString();
 	}
 
 	//----------------------------------------------------------------------------------- buildUpdate

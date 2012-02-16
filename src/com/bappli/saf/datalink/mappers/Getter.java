@@ -8,6 +8,19 @@ import com.bappli.saf.environment.Contained;
 public class Getter
 {
 
+	//------------------------------------------------------------------------------------- getGetter
+	public static String getGetter(String fieldName)
+	{
+		StringBuffer getter = new StringBuffer("get");
+		String[] split = fieldName.split("\\_");
+		for (int i = 0; i < split.length; i++) {
+			if (split[i].length() > 0) {
+				getter.append(split[i].substring(0, 1).toUpperCase()).append(split[i].substring(1));
+			}
+		}
+		return getter.toString();
+	}
+
 	//--------------------------------------------------------------------------------- getCollection
 	@SuppressWarnings("unchecked")
 	public static Collection<? extends Contained> getCollection(
