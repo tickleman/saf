@@ -8,13 +8,14 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 
 import com.bappli.saf.datalink.DataLink;
+import com.bappli.saf.datalink.mappers.ClassJoin;
 
 public class Table
 {
 
 	Class<? extends Object> objectClass;
 	String[] columns;
-	List<String[]> data;
+	List<Object[]> data;
 
 	//------------------------------------------------------------------------------------------ List
 	public Table(Class<? extends Object> objectClass, String[] columns)
@@ -30,11 +31,14 @@ public class Table
 		for (int i = 0; i < columns.length; i++) {
 			new TableColumn(table, SWT.NONE).setText(columns[i]);
 		}
-		for (String[] row : data) {
-			new TableItem(table, SWT.NONE).setText(row);
+		for (Object[] row : data) {
+			String[] strings = new String[row.length];
+			for (int i = 0; i < row.length; i++) strings[i] = row[i].toString();
+			new TableItem(table, SWT.NONE).setText(strings);
 		}
 		for (int i = 0; i < columns.length; i++) {
 			table.getColumn(i).pack();
+			table.getColumn(i).setMoveable(true);
 		}
 		table.setHeaderVisible(true);
 		return this;
@@ -43,7 +47,7 @@ public class Table
 	//-------------------------------------------------------------------------------------- linkData
 	public Table linkData(DataLink dataLink) throws Exception
 	{
-		data = dataLink.select(objectClass, columns);
+		data = dataLink.select(new ClassJoin(objectClass), columns);
 		return this;
 	}
 

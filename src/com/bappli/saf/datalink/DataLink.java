@@ -3,8 +3,14 @@ package com.bappli.saf.datalink;
 import java.util.Collection;
 import java.util.List;
 
+import com.bappli.saf.datalink.mappers.ClassJoin;
+import com.bappli.saf.datalink.sqlite.SQLiteTable;
+
 public interface DataLink
 {
+
+	//-------------------------------------------------------------------------------------- newTable
+	public SQLiteTable newTable();
 
 	//------------------------------------------------------------------------------------------ read
 	public Object read(Object identifier, Class<? extends Object> objectClass) throws Exception;
@@ -27,7 +33,11 @@ public interface DataLink
 	) throws Exception;
 
 	//---------------------------------------------------------------------------------------- select
-	List<String[]> select(Class<? extends Object> objectClass, String[] columns) throws Exception;
+	List<Object[]> select(ClassJoin classJoin, Object[] columns) throws Exception;
+
+	//---------------------------------------------------------------------------------------- select
+	List<Object[]> select(ClassJoin classJoin, Object[] columns, Object filterObject)
+		throws Exception;
 
 	//----------------------------------------------------------------------------------------- write
 	public void write(Object object) throws Exception;

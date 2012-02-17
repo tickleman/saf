@@ -1,6 +1,9 @@
 package com.bappli.saf.datalink.mappers;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import com.bappli.saf.environment.ConnectedEnvironment;
 import com.bappli.saf.environment.Contained;
@@ -46,6 +49,31 @@ public class Getter
 			}
 		}
 		return collection;
+	}
+
+	//---------------------------------------------------------------------------------------- getMap
+	public static Map<? extends Object, ? extends Object> getMap(
+		Map<? extends Object, ? extends Object> map,
+		Class<? extends Object> keyClass,
+		Class<? extends Object> elementClass,
+		Object parent
+	) {
+		if (map == null) {
+			Map<Object, Object> resultMap = new HashMap<Object, Object>();
+			Object[] columns = { keyClass, elementClass };
+			try {
+				List<Object[]> result = ConnectedEnvironment.getCurrent().getDataLink().select(
+					new ClassJoin(keyClass, elementClass), columns, parent);
+				for (Object[] row : result) {
+					resultMap.put(row[0], row[1]);
+				}
+			} catch (Exception e) {
+				System.out.println(e.getMessage());
+				e.printStackTrace(System.out);
+			}
+			map = resultMap;
+		}
+		return map;
 	}
 
 	//------------------------------------------------------------------------------------- getObject

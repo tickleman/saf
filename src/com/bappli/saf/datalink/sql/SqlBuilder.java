@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.bappli.saf.datalink.mappers.ClassFields;
+import com.bappli.saf.datalink.mappers.ClassJoin;
 import com.bappli.saf.datalink.mappers.Getter;
 
 public class SqlBuilder
@@ -43,44 +44,89 @@ public class SqlBuilder
 	}
 
 	//----------------------------------------------------------------------------------- buildSelect
-	public static String buildSelect(Class<? extends Object> objectClass, String[] columns)
-		throws NoSuchMethodException, SecurityException
+	public static String buildSelect(ClassJoin classJoin, Object[] columns, SqlLink sqlLink)
+		throws NoSuchMethodException, SecurityException, SQLException
 	{
-		String tableName = SqlTable.classToTableName(objectClass);
-		return buildSelect(objectClass, columns, tableName, 1, new StringBuffer("`" + tableName + "`"));
+		String tableName = SqlTable.classToTableName(classJoin.getMainClass());
+		return buildSelect(
+			classJoin, columns, tableName, 1, new StringBuffer("`" + tableName + "`"), sqlLink
+		);
 	}
 
 	//----------------------------------------------------------------------------------- buildSelect
 	private static String buildSelect(
-		Class<? extends Object> objectClass, String[] columns, String tableName,
-		int aliasCounter, StringBuffer sqlFrom
-	) throws NoSuchMethodException, SecurityException
+		ClassJoin classJoin, Object[] columns, String tableName,
+		int aliasCounter, StringBuffer sqlFrom, SqlLink sqlLink
+	) throws NoSuchMethodException, SecurityException, SQLException
 	{
 		Map<Class<? extends Object>, String> tableAliases
 			= new HashMap<Class<? extends Object>, String>();
+		for (Class<? extends Object> joinClass : classJoin.getJoinedClasses()) {
+			String joinedTableName = SqlTable.classToTableName(joinClass);
+			String tableAlias = "t" + aliasCounter++;
+			tableAliases.put(joinClass, tableAlias);
+			sqlFrom.append(" INNER JOIN `").append(joinedTableName).append("` AS `")
+				.append(tableAlias).append("` ON `").append(tableAlias).append("`.`id_")
+				.append(classJoin.getMainClass().getSimpleName().toLowerCase()).append("` = `")
+				.append(tableName).append("`.`id`");
+		}
 		StringBuffer sqlSelect = new StringBuffer();
-		Set<Field> fields = ClassFields.accessFields(objectClass);
-		for (String column : columns) {
-			if (!column.contains(".")) {
-				sqlSelect.append(", `" + tableName + "`.`" + column + "`");
-			} else {
-				// TODO column.subcolumn.subcolumn2 (today it works only with column.subcolumn)
-				// TODO collection columns
-				String[] splitColumns = column.split("\\.");
-				for (Field field : fields) if (field.getName().equals(splitColumns[0])) {
-					String getter = Getter.getGetter(splitColumns[0]);
-					Class<? extends Object> fieldClass = objectClass.getMethod(getter).getReturnType();
-					String joinedTableName = SqlTable.classToTableName(fieldClass);
-					String tableAlias = tableAliases.get(fieldClass);
-					if (tableAlias == null) {
-						tableAlias = "t" + aliasCounter;
-						tableAliases.put(fieldClass, tableAlias);
-						sqlFrom.append(" LEFT JOIN `").append(joinedTableName).append("` AS `")
-							.append(tableAlias).append("` ON `").append(tableAlias).append("`.`id` = `")
-							.append(tableName).append("`.`id_").append(splitColumns[0]).append("`");
+		Set<Field> fields = ClassFields.accessFields(classJoin.getMainClass());
+		for (Object column : columns) {
+			if (column instanceof String) {
+				String stringColumn = (String)column;
+				if (!stringColumn.contains(".")) {
+					sqlSelect.append(", `").append(tableName).append("`.`").append(stringColumn).append("`");
+				} else {
+					// TODO column.subcolumn.subcolumn2 (today it works only with column.subcolumn)
+					// TODO collection columns
+					String[] splitColumns = stringColumn.split("\\.");
+					for (Field field : fields) if (field.getName().equals(splitColumns[0])) {
+						String getter = Getter.getGetter(splitColumns[0]);
+						Class<? extends Object> fieldClass
+							= classJoin.getMainClass().getMethod(getter).getReturnType();
+						String tableAlias = tableAliases.get(fieldClass);
+						if (tableAlias == null) {
+							String joinedTableName = SqlTable.classToTableName(fieldClass);
+							tableAlias = "t" + aliasCounter++;
+							tableAliases.put(fieldClass, tableAlias);
+							sqlFrom.append(" LEFT JOIN `").append(joinedTableName).append("` AS `")
+								.append(tableAlias).append("` ON `").append(tableAlias).append("`.`id` = `")
+								.append(tableName).append("`.`id_").append(splitColumns[0]).append("`");
+						}
+						sqlSelect.append(", `").append(tableAlias).append("`.`")
+							.append(splitColumns[1]).append("`");
 					}
-					sqlSelect.append(", `").append(tableAlias).append("`.`")
-						.append(splitColumns[1]).append("`");
+				}
+			} else if (column instanceof Class) {
+				@SuppressWarnings("unchecked")
+				Class<? extends Object> columnClass = (Class<? extends Object>)column;
+				String tableAlias = columnClass.equals(classJoin.getMainClass())
+					? tableName : tableAliases.get(columnClass);
+				if (tableAlias == null) {
+					String joinedTableName = SqlTable.classToTableName(columnClass);
+					tableAlias = "t" + aliasCounter++;
+					tableAliases.put(columnClass, tableAlias);
+					sqlFrom.append(" LEFT JOIN `").append(joinedTableName).append("` AS `")
+						.append(tableAlias).append("` ON `").append(tableAlias).append("`.`id` = `")
+						.append(tableName).append("`.`id_").append(columnClass.getSimpleName().toLowerCase())
+						.append("`");
+				}
+				sqlSelect.append(", `").append(tableAlias).append("`.`id` AS `")
+					.append(columnClass.getName()).append(":id`");
+				Set<Field> columnFields = ClassFields.accessFields(columnClass);
+				Set<String> tableFields = sqlLink.newTable().getFields(sqlLink, columnClass).keySet();
+				for (Field columnField : columnFields) {
+					for (String tableFieldName : tableFields) {
+						if (
+							tableFieldName.equals(columnField.getName())
+							|| tableFieldName.equals("id_" + columnField.getName())
+						) {
+							sqlSelect.append(", `").append(tableAlias).append("`.`").append(tableFieldName)
+								.append("`").append(" AS `").append(columnClass.getName()).append(":")
+								.append(tableFieldName).append("`");
+						}
+					}
 				}
 			}
 		}
@@ -120,13 +166,27 @@ public class SqlBuilder
 	}
 
 	//------------------------------------------------------------------------------------ buildWhere
-	public static StringBuffer buildWhere(
-		Object object, Class<? extends SqlTable> sqlTableClass, SqlLink sqlLink
-	) {
+	public static StringBuffer buildWhere(Map<String, Object> filter)
+	{
+		StringBuffer sqlWhere = new StringBuffer();
+		boolean first = true;
+		for (String fieldName : filter.keySet()) {
+			Object value = filter.get(fieldName);
+			if (first) first = false; else sqlWhere.append(" AND ");
+			sqlWhere.append("`").append(fieldName).append("` = ").append(SqlValue.escape(value));
+		}
+		if (sqlWhere.length() > 0) {
+			sqlWhere.insert(0, " WHERE ");
+		}
+		return sqlWhere;
+	}
+
+	//------------------------------------------------------------------------------------ buildWhere
+	public static StringBuffer buildWhere(Object object, SqlLink sqlLink) {
 		Set<String> fieldNames = null;
 		try {
-			fieldNames = sqlTableClass.newInstance().getFields(sqlLink, object.getClass()).keySet();
-		} catch (InstantiationException | IllegalAccessException | SQLException e) {
+			fieldNames = sqlLink.newTable().getFields(sqlLink, object.getClass()).keySet();
+		} catch (SQLException e) {
 			System.out.println(e.getMessage());
 			e.printStackTrace(System.out);
 		}

@@ -109,7 +109,7 @@ public class SQLiteLink extends SqlLink
 	{
 		Class<? extends Object> objectClass = what.getClass();
 		Collection<Object> searchResult = new ArrayList<Object>();
-		StringBuffer where = SqlBuilder.buildWhere(what, SQLiteTable.class, this);
+		StringBuffer where = SqlBuilder.buildWhere(what, this);
 		Statement statement = getConnection().createStatement();
 		ResultSet resultSet = statement.executeQuery(
 			"SELECT * FROM `" + SQLiteTable.classToTableName(objectClass) + "`" + where
@@ -132,7 +132,7 @@ public class SQLiteLink extends SqlLink
 		Class<? extends Object> objectClass = what.getClass();
 		@SuppressWarnings("unchecked")
 		Collection<Object> searchResult = (Collection<Object>)collectionClass.newInstance();
-		StringBuffer where = SqlBuilder.buildWhere(what, SQLiteTable.class, this);
+		StringBuffer where = SqlBuilder.buildWhere(what, this);
 		Statement statement = getConnection().createStatement();
 		ResultSet resultSet = statement.executeQuery(
 			"SELECT * FROM `" + SQLiteTable.classToTableName(collectionClass) + "`" + where
