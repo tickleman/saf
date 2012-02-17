@@ -1,5 +1,6 @@
 package com.bappli.saf.datalink.sql;
 
+import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -10,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 
 import com.bappli.saf.datalink.DataLink;
-import com.bappli.saf.datalink.mappers.ClassFields;
 import com.bappli.saf.datalink.mappers.ClassJoin;
 import com.bappli.saf.datalink.sqlite.SQLiteTable;
 
@@ -125,22 +125,22 @@ public abstract class SqlLink implements DataLink
 					row[j] = resultSet.getObject(i + 1);
 				} else {
 					if (!(row[j] instanceof Object)) {
-						ClassFields.accessFields(classes[j]);
 						// TODO try to get the object from an object map (avoid several instances of the same)
 						try {
 							row[j] = classes[j].newInstance();
-						} catch (InstantiationException | IllegalAccessException e) {
+						} catch (Exception e) {
 							System.out.println(e.getMessage());
 							e.printStackTrace(System.out);
 						}
 					}
 					if (!columnNames[i].equals("id")) {
 						try {
-							classes[j].getField(columnNames[i]).set(row[j], resultSet.getObject(i + 1));
-						} catch (
-							IllegalArgumentException | IllegalAccessException
-							| NoSuchFieldException | SecurityException e
-						) {
+							Field classField = classes[j].getDeclaredField(columnNames[i]);
+							boolean isAccessible = classField.isAccessible();
+							if (!isAccessible) classField.setAccessible(true);
+							classField.set(row[j], resultSet.getObject(i + 1));
+							if (isAccessible) classField.setAccessible(false);
+						} catch (Exception e) {
 							System.out.println(e.getMessage());
 							e.printStackTrace(System.out);
 						}
@@ -148,9 +148,6 @@ public abstract class SqlLink implements DataLink
 				}
 			}
 			list.add(row);
-		}
-		for (j = classes.length - 1; j >= 0; j--) {
-			ClassFields.accessFieldsDone(classes[j]);
 		}
 		return list;
 	}

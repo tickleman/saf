@@ -35,7 +35,7 @@ public class Getter
 			Contained element = null;
 			try {
 				element = elementClass.newInstance();
-			} catch (InstantiationException | IllegalAccessException e) {
+			} catch (Exception e) {
 				System.out.println(e.getMessage());
 				e.printStackTrace(System.out);
 			}

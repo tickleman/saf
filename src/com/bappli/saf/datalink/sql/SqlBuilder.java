@@ -196,7 +196,7 @@ public class SqlBuilder
 			Object value = null;
 			try {
 				value = field.get(object);
-			} catch (IllegalArgumentException | IllegalAccessException e) {
+			} catch (Exception e) {
 				System.out.println(e.getMessage());
 				e.printStackTrace(System.out);
 			}
