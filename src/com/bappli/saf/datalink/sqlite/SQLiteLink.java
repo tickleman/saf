@@ -155,21 +155,30 @@ public class SQLiteLink extends SqlLink
 		Set<String> tableFieldsNames = new SQLiteTable().getFields(this, object.getClass()).keySet();
 		Map<String, Object> write = new HashMap<String, Object>();
 		for (Field classField : ClassFields.accessFields(object.getClass())) {
+			Object value = classField.get(object);
 			if (tableFieldsNames.contains(classField.getName())) {
-				write.put(classField.getName(), classField.get(object));
+				write.put(classField.getName(), value);
 			} else if (tableFieldsNames.contains("id_" + classField.getName())) {
-				Object value = classField.get(object);
 				if (!(value instanceof Integer)) {
 					value = getObjectIdentifier(value);
 				}
 				write.put("id_" + classField.getName(), value);
-			} else if (classField.get(object) instanceof Collection) {
+			} else if (value instanceof Collection) {
 				@SuppressWarnings("unchecked")
-				Collection<Contained> collection = (Collection<Contained>) classField.get(object);
+				Collection<Contained> collection = (Collection<Contained>) value;
 				for (Object element : collection) {
 					if (element instanceof Contained) {
 						write(element);
 					}
+				}
+			} else if (value instanceof Map) {
+				@SuppressWarnings("unchecked")
+				Map<Object, Object> map = (Map<Object, Object>) value;
+				for (Object elementKey : map.keySet()) {
+					Object elementValue = map.get(elementKey);
+					write(elementKey);
+					// TODO write with linked values (elementKey id must be written into elementValues field)
+					write(elementValue);
 				}
 			}
 		}

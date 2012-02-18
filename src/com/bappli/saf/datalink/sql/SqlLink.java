@@ -133,7 +133,9 @@ public abstract class SqlLink implements DataLink
 							e.printStackTrace(System.out);
 						}
 					}
-					if (!columnNames[i].equals("id")) {
+					if (columnNames[i].equals("id")) {
+						setObjectIdentifier(row[j], resultSet.getInt(i + 1));
+					} else {
 						try {
 							Field classField = classes[j].getDeclaredField(columnNames[i]);
 							boolean isAccessible = classField.isAccessible();
